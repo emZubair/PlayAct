@@ -1,0 +1,126 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: cache-node-modules
+        with:
+          path: |
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Cache Vitest
+        uses: actions/cache@v4
+        with:
+          path: |
+            .vitest
+            coverage
+          key: ${{ runner.os }}-vitest-${{ hashFiles('**/vitest.config.js') }}
+          restore-keys: |
+            ${{ runner.os }}-vitest-
+
+      - name: Run Vitest unit tests
+        id: vitest
+        run: |
+          npm test 2>&1 | tee vitest-output.txt
+        continue-on-error: true
+
+      - name: Generate test summary
+        if: always()
+        id: summary
+        run: |
+          echo "## Test Results Summary" > summary.md
+          echo "" >> summary.md
+
+          # Vitest results
+          echo "### 📝 Vitest Unit Tests" >> summary.md
+          if grep -q "Test Files.*passed" vitest-output.txt; then
+            VITEST_RESULT=$(grep "Test Files" vitest-output.txt | head -1)
+            VITEST_TESTS=$(grep "Tests" vitest-output.txt | head -1)
+            echo "✅ **Status:** Passed" >> summary.md
+            echo "\`\`\`" >> summary.md
+            echo "$VITEST_RESULT" >> summary.md
+            echo "$VITEST_TESTS" >> summary.md
+            echo "\`\`\`" >> summary.md
+          else
+            echo "❌ **Status:** Failed" >> summary.md
+            echo "\`\`\`" >> summary.md
+            tail -20 vitest-output.txt >> summary.md
+            echo "\`\`\`" >> summary.md
+          fi
+
+          echo "" >> summary.md
+          echo "---" >> summary.md
+          echo "💡 **Note:** Playwright E2E tests are excluded from CI as they require a running server. Run them locally with \`npm run test:e2e\`" >> summary.md
+
+      - name: Comment PR with test results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('summary.md', 'utf8');
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Test Results Summary')
+            );
+
+            const commentBody = `${summary}\n\n_Updated: ${new Date().toUTCString()}_`;
+
+            // Update or create comment
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
+
+      - name: Fail workflow if tests failed
+        if: steps.vitest.outcome == 'failure'
+        run: exit 1
