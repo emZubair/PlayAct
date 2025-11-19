@@ -9,5 +9,11 @@ export default defineConfig({
     setupFiles: './src/test/setup.js',
     css: true,
     exclude: ['**/node_modules/**', '**/e2e/**'],
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
   },
 });

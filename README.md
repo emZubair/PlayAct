@@ -25,14 +25,14 @@ The project emphasizes **testing quality** over UI design, providing thorough un
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js (v20 or higher recommended, v18 minimum)
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone git@github.com:emZubair/PlayAct.git
 cd PlayAct
 ```
 
@@ -257,49 +257,24 @@ PlayAct/
 | `npm run test:e2e` | Run Playwright tests |
 | `npm run test:e2e:ui` | Run Playwright with UI |
 | `npm run test:all` | Run all tests (unit + E2E) |
-| `npm run allure:generate` | Generate Allure report from results |
-| `npm run allure:open` | Open generated Allure report |
-| `npm run allure:serve` | Serve Allure report directly |
 
 ## CI/CD
 
-The project includes two GitHub Actions workflows for automated testing and reporting.
+### GitHub Actions Workflow (test.yml)
 
-### 1. Unit Test Workflow (test.yml)
-
-Runs Vitest unit tests on pull requests against the `main` branch.
+The project includes an automated testing workflow that runs Vitest unit tests on pull requests against the `main` branch.
 
 **Features:**
 - ✅ Runs Vitest unit tests (30 tests)
 - 📊 Posts test results as a PR comment with pass/fail status
 - 🔄 Updates existing comment on subsequent pushes (no comment spam)
+- 🚫 Auto-cancels previous runs when PR is updated (saves CI resources)
 - ❌ Fails the workflow if tests fail
-- ⚡ Uses caching for faster builds:
-  - npm cache (via setup-node)
-  - node_modules cache
-  - Vitest cache
+- ⚡ Uses npm cache for faster builds
 
-**Note:** Playwright E2E tests are excluded from this workflow as they require a running development server. Use the Allure Report workflow for E2E test results.
+**Note:** Playwright E2E tests are excluded from CI as they require a running development server. Run them locally with `npm run test:e2e`.
 
 **Workflow file:** `.github/workflows/test.yml`
-
-### 2. Allure Report Workflow (allure-report.yml)
-
-Runs Playwright E2E tests and publishes interactive Allure reports to GitHub Pages.
-
-**Features:**
-- 🎭 Runs Playwright E2E tests (39 tests)
-- 📊 Generates beautiful Allure reports with charts and trends
-- 📈 Maintains test history (last 20 reports)
-- 🌐 Auto-publishes to GitHub Pages on `main` branch pushes
-- 💬 Posts report link as PR comment
-- 📁 Keeps historical test data for trend analysis
-
-**Triggers:**
-- Push to `main` branch
-- Pull requests against `main` branch
-
-**Workflow file:** `.github/workflows/allure-report.yml`
 
 **Example PR Comment:**
 ```markdown
@@ -380,49 +355,3 @@ View Playwright test report:
 npx playwright show-report
 ```
 
-## Allure Reporting
-
-The project includes Allure reporting for comprehensive test visualization and history tracking.
-
-### Local Allure Reports
-
-After running Playwright tests, generate and view Allure reports:
-
-```bash
-# Run tests (generates allure-results)
-npm run test:e2e
-
-# Generate Allure report from results
-npm run allure:generate
-
-# Open the generated report in browser
-npm run allure:open
-
-# Or serve the report directly (one command)
-npm run allure:serve
-```
-
-### GitHub Pages - Automated Allure Reports
-
-The project automatically publishes Allure reports to GitHub Pages on every push to `main`:
-
-**Features:**
-- 📊 Beautiful, interactive test reports with charts and graphs
-- 📈 Test history and trends over time
-- 🔍 Detailed test execution information (steps, screenshots, traces)
-- 📁 Keeps last 20 report histories
-- 🔄 Auto-updates on every main branch push
-- 🌐 Publicly accessible via GitHub Pages
-
-**Access the report:**
-```
-https://<your-username>.github.io/<repository-name>/
-```
-
-**GitHub Actions Workflow:** `.github/workflows/allure-report.yml`
-
-**Setup Instructions:**
-1. Enable GitHub Pages in repository settings
-2. Set source to `gh-pages` branch
-3. Push to `main` branch to trigger report generation
-4. Access the published report via the GitHub Pages URL
