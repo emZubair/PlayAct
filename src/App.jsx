@@ -47,9 +47,9 @@ function App() {
                   <Checkbox
                     checked={checked}
                     onChange={(e) => setChecked(e.target.checked)}
-                    inputProps={{ 'aria-label': 'Accept terms', id: 'accept-checkbox' }}
+                    slotProps={{ input: { 'aria-label': 'Accept terms' } }}
+                    id="accept-checkbox"
                     data-testid="accept-checkbox"
-                    id="accept-checkbox-wrapper"
                   />
                 }
                 label="I accept the terms and conditions"
@@ -77,9 +77,12 @@ function App() {
                 value={textValue}
                 onChange={(e) => setTextValue(e.target.value)}
                 helperText={`Character count: ${textValue.length}`}
-                inputProps={{ 'data-testid': 'name-input', id: 'name-input' }}
-                data-testid="name-textfield"
-                id="name-textfield"
+                slotProps={{
+                  htmlInput: {
+                    'data-testid': 'name-input',
+                    id: 'name-input'
+                  }
+                }}
               />
               {textValue && (
                 <Typography
@@ -106,10 +109,12 @@ function App() {
                   <TextField
                     {...params}
                     label="Select a fruit"
-                    inputProps={{
-                      ...params.inputProps,
-                      'data-testid': 'fruit-autocomplete-input',
-                      id: 'fruit-autocomplete-input'
+                    slotProps={{
+                      htmlInput: {
+                        ...params.inputProps,
+                        'data-testid': 'fruit-autocomplete-input',
+                        id: 'fruit-autocomplete-input'
+                      }
                     }}
                     id="fruit-autocomplete-textfield"
                   />
