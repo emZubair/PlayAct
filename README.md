@@ -70,7 +70,7 @@ npm test
 Run tests in watch mode (recommended for development):
 ```bash
 npm run test:watch
-```j
+```
 
 ### End-to-End Tests (Playwright)
 
@@ -212,4 +212,4 @@ Runs Vitest unit tests on pull requests against the `main` branch.
 Runs Playwright E2E tests against the deployed Vercel application and publishes Allure reports.
 
 **Allure Report:** After the first workflow run on main branch, the Allure report will be available at:
-`https://emzubair.github.io/PlayAct/`
+[PlayWright-React-Pages](https://emzubair.github.io/PlayAct/)
