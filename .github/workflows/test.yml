@@ -44,6 +44,7 @@ jobs:
         id: vitest
         env:
           NODE_ENV: test
+          NO_COLOR: 1
         run: |
           npm test 2>&1 | tee vitest-output.txt
         continue-on-error: true
@@ -52,14 +53,17 @@ jobs:
         if: always()
         id: summary
         run: |
+          # Strip ANSI color codes from output file
+          sed -i 's/\x1B\[[0-9;]*[JKmsu]//g' vitest-output.txt
+
           echo "## Test Results Summary" > summary.md
           echo "" >> summary.md
 
           # Vitest results
           echo "### 📝 Vitest Unit Tests" >> summary.md
           if grep -q "Test Files.*passed" vitest-output.txt; then
-            VITEST_RESULT=$(grep "Test Files" vitest-output.txt | head -1)
-            VITEST_TESTS=$(grep "Tests" vitest-output.txt | head -1)
+            VITEST_RESULT=$(grep "Test Files" vitest-output.txt | head -1 | xargs)
+            VITEST_TESTS=$(grep "Tests" vitest-output.txt | head -1 | xargs)
             echo "✅ **Status:** Passed" >> summary.md
             echo "\`\`\`" >> summary.md
             echo "$VITEST_RESULT" >> summary.md

@@ -1,5 +1,8 @@
 # PlayAct - Material UI Testing Demo
 
+[![Unit Tests](https://github.com/emZubair/PlayAct/actions/workflows/test.yml/badge.svg)](https://github.com/emZubair/PlayAct/actions/workflows/test.yml)
+[![E2E Tests](https://github.com/emZubair/PlayAct/actions/workflows/e2e.yml/badge.svg)](https://github.com/emZubair/PlayAct/actions/workflows/e2e.yml)
+
 A React application demonstrating comprehensive testing of Material UI components using Vitest and Playwright.
 
 ## Project Overview
@@ -67,19 +70,20 @@ npm test
 Run tests in watch mode (recommended for development):
 ```bash
 npm run test:watch
-```
-
-Run tests with UI:
-```bash
-npm run test:ui
-```
+```j
 
 ### End-to-End Tests (Playwright)
 
 The project uses the **Page Object Model (POM)** pattern for maintainable and scalable E2E tests:
-- **app.pom.spec.js** - 39 comprehensive tests using POM pattern
-- **PlayActPage.js** - Page Object containing all locators and interactions
-- **BasePage.js** - Base class with common reusable methods
+
+**Test Files (organized by component):**
+- **checkbox.spec.js** - 13 tests for Checkbox component functionality
+- **textfield.spec.js** - 18 tests for TextField component functionality
+- **autocomplete.spec.js** - 20 tests for Autocomplete component functionality
+
+**Page Objects:**
+- **play.act.page.js** - Page Object containing all locators and interaction methods
+- **base.page.js** - Base class with common reusable methods inherited by all page objects
 
 Run all E2E tests:
 ```bash
@@ -135,82 +139,15 @@ npm run test:all
 
 ## Test Coverage
 
-### Checkbox Component Tests
-
-**Unit Tests:**
-- Initial unchecked state
-- Status display ("Not Accepted" / "Accepted")
-- Click interaction
-- Multiple toggles
-- Accessibility (aria-label)
-
-**E2E Tests:**
-- Visual rendering
-- User interaction flow
-- Keyboard accessibility (Space key)
-- Status updates
-
-### TextField Component Tests
-
-**Unit Tests:**
-- Initial empty state
-- Character count display (starts at 0)
-- Text input handling
-- Dynamic greeting message
-- Clear input functionality
-- Special characters support
-- Unicode character handling
-
-**E2E Tests:**
-- Real-time character count updates
-- Long text input
-- Input clearing
-- Visual feedback
-- Edge cases (special chars, unicode)
-
-### Autocomplete Component Tests
-
-**Unit Tests:**
-- Initial empty state
-- Dropdown opening
-- Option display (8 fruit options)
-- Filtering by input
-- Option selection
-- Selection changes
-- Case-insensitive filtering
-
-**E2E Tests:**
-- Dropdown interaction
-- Keyboard navigation (Arrow keys)
-- Option selection
-- Value persistence
-- Filter functionality
-- "No options" state
-- Escape key behavior
-
-### Integration Tests
-
-Both test suites include integration tests that verify:
-- All components work independently
-- State is maintained across interactions
-- Multiple components can be used simultaneously
-
-### Accessibility Tests (Playwright)
-
-- Heading hierarchy
-- Form labels
-- Keyboard navigation (Tab key)
-- Focus management
-
-### Responsive Design Tests (Playwright)
-
-- Mobile viewport (375x667)
-- Tablet viewport (768x1024)
+For detailed test coverage information including all test cases, edge cases, and testing patterns, see the [Test Coverage Documentation](./e2e/TEST_COVERAGE.md).
 
 ## Test Statistics
 
 - **Total Vitest Tests:** 30 unit tests
-- **Total Playwright Tests:** 39 E2E tests (using Page Object Model)
+- **Total Playwright Tests:** 51 E2E tests (using Page Object Model)
+  - Checkbox component: 13 tests
+  - TextField component: 18 tests
+  - Autocomplete component: 20 tests
 - **Browsers Tested:** Chromium by default (Firefox and WebKit available - see Cross-Browser Testing section)
 - **Test Coverage Areas:**
   - Component rendering
@@ -219,7 +156,7 @@ Both test suites include integration tests that verify:
   - Accessibility
   - Keyboard navigation
   - Responsive design
-  - Integration scenarios
+  - State persistence
 
 ## Project Structure
 
@@ -227,13 +164,17 @@ Both test suites include integration tests that verify:
 PlayAct/
 ├── .github/
 │   └── workflows/
-│       └── test.yml          # GitHub Actions CI/CD workflow
+│       ├── test.yml          # GitHub Actions workflow for Vitest unit tests
+│       └── e2e.yml           # GitHub Actions workflow for Playwright E2E tests
 ├── e2e/                      # Playwright E2E tests
 │   ├── pages/
 │   │   ├── base.page.js      # Base Page Object with common methods
 │   │   └── play.act.page.js  # Page Object Model for PlayAct app
 │   ├── specs/
-│   │   └── app.spec.js       # POM-based E2E tests (39 tests)
+│   │   ├── checkbox.spec.js     # Checkbox component tests (13 tests)
+│   │   ├── textfield.spec.js    # TextField component tests (18 tests)
+│   │   └── autocomplete.spec.js # Autocomplete component tests (20 tests)
+│   └── TEST_COVERAGE.md      # Detailed test coverage documentation
 ├── src/
 │   ├── test/
 │   │   └── setup.js          # Vitest setup and configuration
@@ -260,98 +201,15 @@ PlayAct/
 
 ## CI/CD
 
-### GitHub Actions Workflow (test.yml)
+The project includes two automated testing workflows:
 
-The project includes an automated testing workflow that runs Vitest unit tests on pull requests against the `main` branch.
+### 1. Unit Tests Workflow (test.yml)
 
-**Features:**
-- ✅ Runs Vitest unit tests (30 tests)
-- 📊 Posts test results as a PR comment with pass/fail status
-- 🔄 Updates existing comment on subsequent pushes (no comment spam)
-- 🚫 Auto-cancels previous runs when PR is updated (saves CI resources)
-- ❌ Fails the workflow if tests fail
-- ⚡ Uses npm cache for faster builds
+Runs Vitest unit tests on pull requests against the `main` branch.
 
-**Note:** Playwright E2E tests are excluded from CI as they require a running development server. Run them locally with `npm run test:e2e`.
+### 2. E2E Tests Workflow (e2e.yml)
 
-**Workflow file:** `.github/workflows/test.yml`
+Runs Playwright E2E tests against the deployed Vercel application and publishes Allure reports.
 
-**Example PR Comment:**
-```markdown
-## Test Results Summary
-
-### 📝 Vitest Unit Tests
-✅ **Status:** Passed
- Test Files  1 passed (1)
-      Tests  30 passed (30)
-
----
-💡 **Note:** Playwright E2E tests are excluded from CI as they require a running server. Run them locally with `npm run test:e2e`
-
-Updated: Wed, 20 Nov 2024 00:00:00 GMT
-```
-
-### Manual CI Mode
-
-The project is also configured for manual CI/CD environments:
-
-- Playwright retries failed tests 2 times in CI
-- Single worker in CI for stability
-- Development server auto-starts for E2E tests
-- All tests can run headlessly
-
-To run in CI mode:
-```bash
-CI=true npm run test:all
-```
-
-## Key Testing Patterns
-
-### Vitest Unit Tests
-
-- Uses `@testing-library/react` for component rendering
-- Uses `@testing-library/user-event` for realistic user interactions
-- Uses `waitFor` for async operations
-- Tests are isolated with automatic cleanup
-
-### Playwright E2E Tests (Page Object Model)
-
-- **BasePage Pattern**: Common methods inherited by all page objects
-  - Navigation methods (goto, reload, goBack, goForward)
-  - Keyboard interactions (pressTab, pressEnter, pressEscape, arrow keys)
-  - Viewport management (setMobileViewport, setTabletViewport, etc.)
-  - Assertion helpers (expectVisible, expectChecked, expectText, etc.)
-  - Element interaction methods (click, fill, check, hover, etc.)
-
-- **PlayActPage**: Application-specific page object
-  - All locators defined in constructor using ID selectors
-  - Component-specific interaction methods (checkCheckbox, fillTextField, etc.)
-  - Custom assertion helpers (expectCheckboxChecked, expectTextFieldValue, etc.)
-
-- **Benefits of POM approach**:
-  - Cleaner, more maintainable test code
-  - Reusable methods across tests
-  - Centralized locator management
-  - Easy to extend for new pages
-  - Tests focus on behavior, not implementation details
-
-## Debugging Tests
-
-### Debug Vitest Tests
-
-Run tests with verbose output:
-```bash
-npm test -- --reporter=verbose
-```
-
-### Debug Playwright Tests
-
-```bash
-npx playwright test --debug
-```
-
-View Playwright test report:
-```bash
-npx playwright show-report
-```
-
+**Allure Report:** After the first workflow run on main branch, the Allure report will be available at:
+`https://emzubair.github.io/PlayAct/`

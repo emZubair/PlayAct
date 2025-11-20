@@ -23,7 +23,9 @@ dist-ssr
 *.sw?
 
 playwright-report/*
+test-results/
 node_modules/
+test-results/.last-run.json
 # Allure
 allure-results/
 allure-report/
