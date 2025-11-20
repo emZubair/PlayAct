@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 # Cancel in-progress runs when a new commit is pushed to the same PR
@@ -21,6 +24,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Download previous Allure history
+        if: always() && github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-history
+          path: ./allure-history
+        continue-on-error: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -54,10 +65,19 @@ jobs:
             tar -zxvf allure-2.24.1.tgz -C /opt/
             sudo ln -s /opt/allure-2.24.1/bin/allure /usr/bin/allure
 
-            # Generate Allure report
+            # Create history directory for trends data
+            mkdir -p allure-results/history
+
+            # Copy previous history if it exists
+            if [ -d "allure-history" ]; then
+              echo "Using previous history for trends..."
+              cp -r allure-history/* allure-results/history/ 2>/dev/null || echo "No previous history found"
+            fi
+
+            # Generate Allure report with history (trends data)
             allure generate allure-results --clean -o allure-report
 
-            echo "Allure report generated successfully"
+            echo "Allure report generated successfully with trends data"
           else
             echo "No allure-results found or directory is empty"
             mkdir -p allure-report
@@ -133,13 +153,21 @@ jobs:
               });
             }
 
+      - name: Upload Allure history for trends
+        if: always() && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-history
+          path: ./allure-report/history
+          retention-days: 30
+
       - name: Deploy Allure report to GitHub Pages
         if: always() && github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./allure-report
-          keep_files: false
+          keep_files: true
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
 
