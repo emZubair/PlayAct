@@ -1,0 +1,16 @@
+# PDF Fixtures Directory
+
+Place your test PDF files here for content and visual validation tests.
+
+## Recommended files:
+- sample.pdf - Basic single-page PDF for testing
+- multi-page.pdf - Multi-page document for pagination tests
+- invoice.pdf - Invoice template for data validation
+- report.pdf - Report with tables for structure validation
+
+## Generating test PDFs:
+You can create test PDFs using tools like:
+- Google Docs -> Export as PDF
+- Microsoft Word -> Save as PDF
+- Online generators like https://www.sejda.com/
+- Node.js libraries like pdfkit or jspdf

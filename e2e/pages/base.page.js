@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect } from "@playwright/test";
 
 /**
  * Base Page Object Model
@@ -12,7 +12,7 @@ export class BasePage {
   /**
    * Navigation methods
    */
-  async goto(url = '/') {
+  async goto(url = "/") {
     await this.page.goto(url);
   }
 
@@ -32,35 +32,35 @@ export class BasePage {
    * Keyboard interaction methods
    */
   async pressTab() {
-    await this.page.keyboard.press('Tab');
+    await this.page.keyboard.press("Tab");
   }
 
   async pressEnter() {
-    await this.page.keyboard.press('Enter');
+    await this.page.keyboard.press("Enter");
   }
 
   async pressEscape() {
-    await this.page.keyboard.press('Escape');
+    await this.page.keyboard.press("Escape");
   }
 
   async pressSpace() {
-    await this.page.keyboard.press('Space');
+    await this.page.keyboard.press("Space");
   }
 
   async pressArrowDown() {
-    await this.page.keyboard.press('ArrowDown');
+    await this.page.keyboard.press("ArrowDown");
   }
 
   async pressArrowUp() {
-    await this.page.keyboard.press('ArrowUp');
+    await this.page.keyboard.press("ArrowUp");
   }
 
   async pressArrowLeft() {
-    await this.page.keyboard.press('ArrowLeft');
+    await this.page.keyboard.press("ArrowLeft");
   }
 
   async pressArrowRight() {
-    await this.page.keyboard.press('ArrowRight');
+    await this.page.keyboard.press("ArrowRight");
   }
 
   async pressKey(key) {
@@ -105,7 +105,7 @@ export class BasePage {
     await this.page.waitForNavigation();
   }
 
-  async waitForLoadState(state = 'load') {
+  async waitForLoadState(state = "load") {
     await this.page.waitForLoadState(state);
   }
 
@@ -297,18 +297,22 @@ export class BasePage {
    * Console and error handling
    */
   setupConsoleListener() {
-    this.page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    this.page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
   }
 
   setupErrorListener() {
-    this.page.on('pageerror', error => console.log('PAGE ERROR:', error));
+    this.page.on("pageerror", (error) => console.log("PAGE ERROR:", error));
   }
 
   setupRequestListener() {
-    this.page.on('request', request => console.log('REQUEST:', request.url()));
+    this.page.on("request", (request) =>
+      console.log("REQUEST:", request.url())
+    );
   }
 
   setupResponseListener() {
-    this.page.on('response', response => console.log('RESPONSE:', response.url(), response.status()));
+    this.page.on("response", (response) =>
+      console.log("RESPONSE:", response.url(), response.status())
+    );
   }
 }

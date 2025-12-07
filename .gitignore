@@ -29,3 +29,8 @@ test-results/.last-run.json
 # Allure
 allure-results/
 allure-report/
+
+# E2E test artifacts
+e2e/downloads/
+e2e/test-results/
+*-diff.png

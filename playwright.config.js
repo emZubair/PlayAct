@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
 
 export default defineConfig({
   testDir: './e2e',
@@ -9,10 +10,32 @@ export default defineConfig({
   reporter: process.env.CI
     ? [['html'], ['list'], ['allure-playwright']]
     : 'html',
+
+  // Snapshot configuration for visual comparisons
+  snapshotDir: './e2e/fixtures/snapshots',
+  snapshotPathTemplate: '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}',
+
+  // Expect configuration
+  expect: {
+    toHaveScreenshot: {
+      threshold: 0.1,
+      maxDiffPixels: 100,
+    },
+    toMatchSnapshot: {
+      threshold: 0.1,
+    },
+  },
+
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:5173',
     trace: 'on-first-retry',
+
+    // PDF download configuration
+    acceptDownloads: true,
   },
+
+  // Output directories
+  outputDir: './e2e/test-results',
 
   projects: [
     {
