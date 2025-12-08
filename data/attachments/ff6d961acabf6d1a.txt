@@ -1,0 +1,3 @@
+Visual difference detected: 11.17%
+Different pixels: 216487
+Diff image saved: /home/runner/work/PlayAct/PlayAct/e2e/fixtures/snapshots/logo-missing-vs-original-diff.png

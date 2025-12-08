@@ -1,0 +1,3 @@
+Visual difference comparison:
+  Total missing: 0.38%
+  Logo missing: 11.17%

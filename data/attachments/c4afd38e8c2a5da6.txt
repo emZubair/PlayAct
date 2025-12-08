@@ -1,0 +1,3 @@
+Visual difference detected: 12.36%
+Different pixels: 239714
+Diff image saved: /home/runner/work/PlayAct/PlayAct/e2e/fixtures/snapshots/wrong-logo-vs-original-diff.png

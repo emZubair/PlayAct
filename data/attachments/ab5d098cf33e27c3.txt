@@ -1,0 +1,4 @@
+total-missing.pdf: 0.38% different
+logo-missing.pdf: 11.17% different
+wrong-logo.pdf: 12.36% different
+wrong-calculations.pdf: 0.00% different

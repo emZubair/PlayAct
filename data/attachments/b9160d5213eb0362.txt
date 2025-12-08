@@ -1,0 +1,1 @@
+Wrong logo detected: 12.36% difference (239714 pixels)

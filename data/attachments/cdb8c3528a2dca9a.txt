@@ -1,0 +1,5 @@
+Visual differences ranked (smallest to largest):
+  1. Wrong Calculations: 0% (79 pixels)
+  2. Total Missing: 0.38% (7459 pixels)
+  3. Logo Missing: 11.17% (216487 pixels)
+  4. Wrong Logo: 12.36% (239714 pixels)

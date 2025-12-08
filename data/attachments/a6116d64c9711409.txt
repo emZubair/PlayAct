@@ -1,0 +1,4 @@
+File size comparison:
+        Original: 66568 bytes
+        Wrong logo: 201613 bytes
+        Difference: 135045 bytes
