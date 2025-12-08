@@ -154,6 +154,80 @@ test.describe('PDF Invoice Validation', () => {
   });
 
   // ============================================================================
+  // WRONG LOGO - Visual Defect Detection (Wrong Image, Not Missing)
+  // ============================================================================
+  test.describe('Wrong Logo Invoice (wrong-logo.pdf)', () => {
+    const invoiceFile = 'wrong-logo.pdf';
+
+    test('should have all text content present (identical to original)', async () => {
+      const pdfPath = pdfPage.getPdfFixture(invoiceFile);
+      await pdfPage.expectPdfContainsText(pdfPath, [
+        'Invoice', 'John Doe', 'Start Date', 'Department', 'Finance',
+        'Total Expanse', '500.00', 'Service', '10.00', 'Miscal', '5.00',
+        'Total Income', '515.00', 'Total Deductions', '5.00',
+      ]);
+    });
+
+    test('should have Net Bill present with correct amount', async () => {
+      const pdfPath = pdfPage.getPdfFixture(invoiceFile);
+      const text = await pdfPage.extractText(pdfPath);
+
+      const netBillMatch = text.match(/Net Bill:\s*PKR\s+([\d.]+)/);
+      expect(netBillMatch).not.toBeNull();
+      expect(parseFloat(netBillMatch[1])).toBe(510.00);
+    });
+
+    test('should have correct calculation (Total Income - Deductions = Net Bill)', async () => {
+      const pdfPath = pdfPage.getPdfFixture(invoiceFile);
+      const text = await pdfPage.extractText(pdfPath);
+
+      const totalIncome = parseFloat(text.match(/Total Income\s+([\d.]+)/)[1]);
+      const totalDeductions = parseFloat(text.match(/Total Deductions\s+([\d.]+)/)[1]);
+      const netBill = parseFloat(text.match(/Net Bill:\s*PKR\s+([\d.]+)/)[1]);
+
+      expect(netBill).toBe(totalIncome - totalDeductions);
+    });
+
+    test('should be significantly larger than original (different logo image)', async () => {
+      const originalPath = pdfPage.getPdfFixture('Invoice.pdf');
+      const wrongLogoPath = pdfPage.getPdfFixture(invoiceFile);
+
+      const { getFileSize } = await import('../utils/pdf.utils.js');
+      const originalSize = getFileSize(originalPath);
+      const wrongLogoSize = getFileSize(wrongLogoPath);
+
+      // Wrong logo PDF should be significantly larger due to different image
+      const sizeDifference = wrongLogoSize - originalSize;
+      expect(sizeDifference).toBeGreaterThan(100000); // At least 100KB larger
+
+      console.log(`File size comparison:
+        Original: ${originalSize} bytes
+        Wrong logo: ${wrongLogoSize} bytes
+        Difference: ${sizeDifference} bytes`);
+    });
+
+    test('should FAIL visual comparison against original (wrong logo detected)', async () => {
+      const originalPath = pdfPage.getPdfFixture('Invoice.pdf');
+      const wrongLogoPath = pdfPage.getPdfFixture(invoiceFile);
+
+      const originalImages = await pdfPage.convertPdfToImages(originalPath);
+      const wrongLogoImages = await pdfPage.convertPdfToImages(wrongLogoPath);
+
+      const { compareImages } = await import('../utils/pdf.utils.js');
+      const result = compareImages(originalImages[0], wrongLogoImages[0], { threshold: 0.1 });
+
+      // Should NOT match - logo is different
+      expect(result.match).toBe(false);
+
+      // Should have visual difference (logo area likely >10%)
+      const diffPercentage = parseFloat(result.diffPercentage);
+      expect(diffPercentage).toBeGreaterThan(5);
+
+      console.log(`Wrong logo detected: ${result.diffPercentage}% difference (${result.numDiffPixels} pixels)`);
+    });
+  });
+
+  // ============================================================================
   // WRONG CALCULATIONS - Math Error Detection
   // ============================================================================
   test.describe('Wrong Calculations Invoice (wrong-calculations.pdf)', () => {
@@ -195,7 +269,7 @@ test.describe('PDF Invoice Validation', () => {
   // ============================================================================
   test.describe('Cross-PDF Validation', () => {
     test('all invoices should have same base content', async () => {
-      const invoices = ['Invoice.pdf', 'total-missing.pdf', 'logo-missing.pdf', 'wrong-calculations.pdf'];
+      const invoices = ['Invoice.pdf', 'total-missing.pdf', 'logo-missing.pdf', 'wrong-logo.pdf', 'wrong-calculations.pdf'];
 
       for (const invoice of invoices) {
         const pdfPath = pdfPage.getPdfFixture(invoice);
@@ -208,8 +282,8 @@ test.describe('PDF Invoice Validation', () => {
     });
 
     test('should correctly identify Net Bill status across all invoices', async () => {
-      // Original and logo-missing have correct Net Bill
-      for (const invoice of ['Invoice.pdf', 'logo-missing.pdf']) {
+      // Original, logo-missing, and wrong-logo have correct Net Bill
+      for (const invoice of ['Invoice.pdf', 'logo-missing.pdf', 'wrong-logo.pdf']) {
         const text = await pdfPage.extractText(pdfPage.getPdfFixture(invoice));
         expect(parseFloat(text.match(/Net Bill:\s*PKR\s+([\d.]+)/)[1])).toBe(510.00);
       }
@@ -269,6 +343,12 @@ test.describe('PDF Invoice Validation', () => {
 
     test('logo-missing passes all validations (visual defect only)', async () => {
       const result = await validateInvoice(pdfPage.getPdfFixture('logo-missing.pdf'));
+      expect(result.hasNetBill).toBe(true);
+      expect(result.isCalculationCorrect).toBe(true);
+    });
+
+    test('wrong-logo passes all validations (visual defect only)', async () => {
+      const result = await validateInvoice(pdfPage.getPdfFixture('wrong-logo.pdf'));
       expect(result.hasNetBill).toBe(true);
       expect(result.isCalculationCorrect).toBe(true);
     });

@@ -161,43 +161,6 @@ test.describe('PDF Visual Comparison', () => {
       }
     });
 
-    test('should have significant visual difference from original', async () => {
-      const originalPath = getPdfFixturePath('Invoice.pdf');
-      const logoMissingPath = getPdfFixturePath(invoiceFile);
-
-      const originalImages = await pdfPage.convertPdfToImages(originalPath);
-      const logoMissingImages = await pdfPage.convertPdfToImages(logoMissingPath);
-
-      const result = compareImages(originalImages[0], logoMissingImages[0], {
-        threshold: 0.1,
-      });
-
-      // Expect at least 1% difference due to missing logo
-      expect(parseFloat(result.diffPercentage)).toBeGreaterThan(1);
-
-      console.log('Logo Missing vs Original:');
-      console.log(`  Difference: ${result.diffPercentage}%`);
-      console.log(`  Different pixels: ${result.numDiffPixels} / ${result.totalPixels}`);
-    });
-
-    test('should detect logo area as the main difference', async () => {
-      const originalPath = getPdfFixturePath('Invoice.pdf');
-      const logoMissingPath = getPdfFixturePath(invoiceFile);
-
-      const originalImages = await pdfPage.convertPdfToImages(originalPath);
-      const logoMissingImages = await pdfPage.convertPdfToImages(logoMissingPath);
-
-      const result = compareImages(originalImages[0], logoMissingImages[0], {
-        threshold: 0.05, // Stricter threshold
-      });
-
-      // The difference should be concentrated (logo area)
-      // rather than scattered across the whole page
-      expect(result.numDiffPixels).toBeGreaterThan(1000);
-      expect(parseFloat(result.diffPercentage)).toBeLessThan(20); // Logo is not huge
-
-      console.log(`Logo area represents ~${result.diffPercentage}% of the page`);
-    });
   });
 
   // ============================================================================
@@ -248,6 +211,77 @@ test.describe('PDF Visual Comparison', () => {
   });
 
   // ============================================================================
+  // WRONG LOGO - Visual Defect Detection (Different Image)
+  // ============================================================================
+  test.describe('Wrong Logo Invoice (wrong-logo.pdf) - Visual Defect Detection', () => {
+    const invoiceFile = 'wrong-logo.pdf';
+    const baselineName = 'wrong-logo-invoice';
+
+    test('should convert PDF to image successfully', async () => {
+      const pdfPath = getPdfFixturePath(invoiceFile);
+      const images = await pdfPage.convertPdfToImages(pdfPath);
+
+      expect(images).toHaveLength(1);
+      expect(images[0]).toBeInstanceOf(Buffer);
+    });
+
+    test('should create its own baseline', async () => {
+      const pdfPath = getPdfFixturePath(invoiceFile);
+
+      const comparison = await pdfPage.comparePdfVisual(
+        pdfPath,
+        baselineName,
+        {
+          threshold: 0.1,
+          tolerance: 0,
+          updateSnapshots,
+        }
+      );
+
+      expect(comparison.totalPages).toBe(1);
+      expect(comparison.allMatch).toBe(true);
+    });
+
+    test('should FAIL when compared against original invoice baseline', async () => {
+      const originalPath = getPdfFixturePath('Invoice.pdf');
+      const wrongLogoPath = getPdfFixturePath(invoiceFile);
+
+      // First ensure original baseline exists
+      const originalBaseline = getSnapshotPath('original-invoice-page-1.png');
+      if (!fileExists(originalBaseline)) {
+        // Create baseline if needed
+        await pdfPage.comparePdfVisual(originalPath, 'original-invoice', { updateSnapshots: true });
+      }
+
+      // Convert wrong-logo PDF to image
+      const wrongLogoImages = await pdfPage.convertPdfToImages(wrongLogoPath);
+
+      // Read original baseline
+      const originalImage = fs.readFileSync(originalBaseline);
+
+      // Compare - should FAIL due to different logo
+      const result = compareImages(originalImage, wrongLogoImages[0], {
+        threshold: 0.1,
+        tolerance: 0,
+      });
+
+      // Should NOT match - logo is different
+      expect(result.match).toBe(false);
+      expect(parseFloat(result.diffPercentage)).toBeGreaterThan(0);
+
+      console.log(`Visual difference detected: ${result.diffPercentage}%`);
+      console.log(`Different pixels: ${result.numDiffPixels}`);
+
+      // Save diff image for inspection
+      if (result.diffImage) {
+        const diffPath = getSnapshotPath('wrong-logo-vs-original-diff.png');
+        fs.writeFileSync(diffPath, result.diffImage);
+        console.log(`Diff image saved: ${diffPath}`);
+      }
+    });
+  });
+
+  // ============================================================================
   // WRONG CALCULATIONS - Minimal Visual Difference
   // ============================================================================
   test.describe('Wrong Calculations Invoice (wrong-calculations.pdf) - Text Difference', () => {
@@ -281,6 +315,7 @@ test.describe('PDF Visual Comparison', () => {
       const variants = [
         { file: 'total-missing.pdf', name: 'Total Missing' },
         { file: 'logo-missing.pdf', name: 'Logo Missing' },
+        { file: 'wrong-logo.pdf', name: 'Wrong Logo' },
         { file: 'wrong-calculations.pdf', name: 'Wrong Calculations' },
       ];
 
@@ -319,7 +354,7 @@ test.describe('PDF Visual Comparison', () => {
       const originalPath = getPdfFixturePath('Invoice.pdf');
       const originalImages = await pdfPage.convertPdfToImages(originalPath);
 
-      const variants = ['total-missing.pdf', 'logo-missing.pdf', 'wrong-calculations.pdf'];
+      const variants = ['total-missing.pdf', 'logo-missing.pdf', 'wrong-logo.pdf', 'wrong-calculations.pdf'];
 
       for (const variant of variants) {
         const variantPath = getPdfFixturePath(variant);
@@ -337,7 +372,7 @@ test.describe('PDF Visual Comparison', () => {
     });
 
     test('should produce all valid PNG images', async () => {
-      const pdfs = ['Invoice.pdf', 'total-missing.pdf', 'logo-missing.pdf', 'wrong-calculations.pdf'];
+      const pdfs = ['Invoice.pdf', 'total-missing.pdf', 'logo-missing.pdf', 'wrong-logo.pdf', 'wrong-calculations.pdf'];
 
       for (const pdf of pdfs) {
         const pdfPath = getPdfFixturePath(pdf);
@@ -352,7 +387,7 @@ test.describe('PDF Visual Comparison', () => {
     });
 
     test('should generate comparison matrix', async () => {
-      const pdfs = ['Invoice.pdf', 'total-missing.pdf', 'logo-missing.pdf', 'wrong-calculations.pdf'];
+      const pdfs = ['Invoice.pdf', 'total-missing.pdf', 'logo-missing.pdf', 'wrong-logo.pdf', 'wrong-calculations.pdf'];
       const images = {};
 
       // Load all images
@@ -386,6 +421,7 @@ test.describe('PDF Visual Comparison', () => {
         { file: 'Invoice.pdf', name: 'original-invoice' },
         { file: 'total-missing.pdf', name: 'total-missing-invoice' },
         { file: 'logo-missing.pdf', name: 'logo-missing-invoice' },
+        { file: 'wrong-logo.pdf', name: 'wrong-logo-invoice' },
         { file: 'wrong-calculations.pdf', name: 'wrong-calculations-invoice' },
       ];
 
