@@ -1,0 +1,3 @@
+Wrong Calculations vs Original:
+  Difference: 0.00%
+  Different pixels: 79

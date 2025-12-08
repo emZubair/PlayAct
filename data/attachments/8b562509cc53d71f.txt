@@ -1,0 +1,3 @@
+Logo Missing vs Original:
+  Difference: 11.17%
+  Different pixels: 216487 / 1938816

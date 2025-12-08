@@ -1,0 +1,4 @@
+Found 3 baseline snapshots:
+  - logo-missing-invoice-page-1.png
+  - logo-missing-vs-original-diff.png
+  - original-invoice-page-1.png

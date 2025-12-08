@@ -1,0 +1,9 @@
+
+Visual Comparison Matrix:
+======================================================================
+Invoice.pdf vs total-missing.pdf: 0.38%
+Invoice.pdf vs logo-missing.pdf: 11.17%
+Invoice.pdf vs wrong-calculations.pdf: 0.00%
+total-missing.pdf vs logo-missing.pdf: 10.90%
+total-missing.pdf vs wrong-calculations.pdf: 0.38%
+logo-missing.pdf vs wrong-calculations.pdf: 11.17%
